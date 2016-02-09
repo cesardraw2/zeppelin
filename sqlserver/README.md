@@ -26,7 +26,12 @@ For Azure:
 in order to have JDBC running correctly, the SQL Server JDBC class must be available to Java, You can to that by setting your CLASSPATH environment:
 
 ```sh
-export CLASSPATH=/home/johndoe/sqljdbc_6.0/enu/sqljdbc41.jar
+curl -L "https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.6629.101_enu.tar.gz" | tar xz
+export CLASSPATH=/home/<username>/sqljdbc_6.0/enu/sqljdbc41.jar
 ```
 
 The build has been tested with JDBC SQL Server driver 4.1
+
+### Additional notes
+
+Given then I'm not a Java Expert, the interpreter has been created starting from the postgresql interpreter code base.
