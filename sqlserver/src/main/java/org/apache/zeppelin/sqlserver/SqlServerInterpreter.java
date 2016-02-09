@@ -75,7 +75,7 @@ public class SqlServerInterpreter extends Interpreter {
   private static final char NEWLINE = '\n';
   private static final char TAB = '\t';
   private static final String TABLE_MAGIC_TAG = "%table ";
-  private static final String EXPLAIN_PREDICATE = "";
+  private static final String EXPLAIN_PREDICATE = "EXPLAIN ";
   private static final String UPDATE_COUNT_HEADER = "Update Count";
 
   static final String DEFAULT_JDBC_URL = "jdbc:sqlserver://localhost:1433";
