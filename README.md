@@ -13,8 +13,10 @@ This fork of Apache Zepplin is focused on specific support for SQL Server and SQ
 ## Getting Started
 
 ### Before Build
-If you don't have requirements prepared, install it.
-(The installation method may vary according to your environment, example is for Ubuntu 15.10.).
+The installation method may vary according to your environment, example is for Ubuntu 15.10.
+You can download Ubuntu from here: http://www.ubuntu.com/download/desktop/.
+
+The current version has been built and test on Ubutu 15.10 64bits.
 
 From a terminal shell:
 
