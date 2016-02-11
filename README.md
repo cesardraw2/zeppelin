@@ -65,3 +65,12 @@ If you wish to configure Zeppelin option (like port number), configure the follo
 ./conf/zeppelin-env.sh
 ./conf/zeppelin-site.xml
 ```
+
+### Start Zeppelin
+Start Zeppelin Daemon:
+
+```
+./bin/zeppelin-daemon.sh start
+```
+
+you can now head to ```http://localhost:8080``` to see Zeppelin running. 
