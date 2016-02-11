@@ -41,8 +41,10 @@ git clone https://github.com/yorek/incubator-zeppelin.git zeppelin-sqlserver
 
 ### Build
 
+From a terminal shell:
+
 ```
-export CLASSPATH=/home/dmauri/sqljdbc_6.0/enu/sqljdbc41.jar
+export CLASSPATH=~/sqljdbc_6.0/enu/sqljdbc41.jar
 export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=1024m"
 
 cd ~/zeppelin-sqlserver
@@ -59,6 +61,7 @@ cp ./sqljdbc_6.0/enu/sqljdbc41.jar ./zeppelin-sqlserver/zeppelin-interpreter/tar
 ```
 
 ### Configure
+
 If you wish to configure Zeppelin option (like port number), configure the following files:
 
 ```
@@ -67,10 +70,11 @@ If you wish to configure Zeppelin option (like port number), configure the follo
 ```
 
 ### Start Zeppelin
-Start Zeppelin Daemon:
+
+From a terminal shell, start Zeppelin Daemon:
 
 ```
 ./bin/zeppelin-daemon.sh start
 ```
 
-you can now head to ```http://localhost:8080``` to see Zeppelin running. 
+you can now head to ```http://localhost:8080``` to see Zeppelin running.
