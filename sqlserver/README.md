@@ -4,15 +4,24 @@ This interpreter supports the following SQL engines:
 * [SQL Server](https://www.microsoft.com/sqlserver) - Relational & Post-Relational database management system (RDBMS)
 * [Azure SQL Database](https://azure.microsoft.com/it-it/services/sql-database) - A Relational database-as-a-service in the cloud
 
-### Installation notes
+### Build notes
 
 In order to build and use the SQL Server Apache Zeppelin Interpreter, the Microsoft JDBC drivers needs to be installed.
+This build has been tested with the JDBC SQL Server driver 4.1 that comes with the latest JDBC package, the 6.0.
 
-Download the latest driver here:
+The latest driver are here:
 
 * [Microsoft JDBC Driver for SQL Server](https://msdn.microsoft.com/en-us/data/aa937724.aspx)
 
-Here's some useful link for doing that:
+To download the latest driver you can just curl it from a terminal window:
+
+```
+curl -L "https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.6629.101_enu.tar.gz" | tar xz
+```
+
+at the end of the process you'll have a sqljdbc_6.0 folder in your home.
+
+Here's some useful link on JDBC and how to use it:
 
 * [Overview of the JDBC Driver](https://msdn.microsoft.com/en-US/library/ms378749.aspx)
 * [Deploying the JDBC Driver](https://msdn.microsoft.com/en-US/library/aa342329.aspx)
@@ -23,14 +32,12 @@ For Azure:
 
 * [Connecting to an Azure SQL database](https://msdn.microsoft.com/en-us/library/hh290696.aspx)
 
-in order to have JDBC running correctly, the SQL Server JDBC class must be available to Java, You can to that by setting your CLASSPATH environment:
+In order to have Maven correctly recognize the dependency, you have to register JDBC into Maven local repository. From
+a terminal window:
 
-```sh
-curl -L "https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.6629.101_enu.tar.gz" | tar xz
-export CLASSPATH=/home/<username>/sqljdbc_6.0/enu/sqljdbc41.jar
 ```
-
-The build has been tested with JDBC SQL Server driver 4.1
+mvn install:install-file -Dfile=~/sqljdbc_6.0/enu/sqljdbc41.jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc41 -Dversion=4.1  -Dpackaging=jar -DgeneratePom=true
+```
 
 ### Additional notes
 

@@ -57,7 +57,7 @@ import com.google.common.collect.Sets.SetView;
  *
  * <p>
  * How to use: <br/>
- * {@code %psql.sql} <br/>
+ * {@code %tsql.sql} <br/>
  * {@code
  *  SELECT store_id, count(*)
  *  FROM retail_demo.order_lineitems_pxf
@@ -71,7 +71,7 @@ public class SqlServerInterpreter extends Interpreter {
 
   private Logger logger = LoggerFactory.getLogger(SqlServerInterpreter.class);
 
-  private static final char WhITESPACE = ' ';
+  private static final char WHITESPACE = ' ';
   private static final char NEWLINE = '\n';
   private static final char TAB = '\t';
   private static final String TABLE_MAGIC_TAG = "%table ";
@@ -123,7 +123,7 @@ public class SqlServerInterpreter extends Interpreter {
         }
       };
 
-  private static final List<String> NO_COMPLETION = new ArrayList<String>();
+  private static final List<String> NO_COMPLETION = new ArrayList<>();
 
   public SqlServerInterpreter(Properties property) {
     super(property);
@@ -135,7 +135,7 @@ public class SqlServerInterpreter extends Interpreter {
     logger.info("Opening sqlserver connection");
 
     // Ensure that no previous connections are left open.
-    close();
+    this.close();
 
     try {
 
@@ -157,9 +157,11 @@ public class SqlServerInterpreter extends Interpreter {
       logger.info("Successfully created sqlserver connection");
 
     } catch (ClassNotFoundException | SQLException e) {
+
       logger.error("Cannot open connection", e);
       exceptionOnConnect = e;
       close();
+
     }
   }
 
@@ -197,20 +199,21 @@ public class SqlServerInterpreter extends Interpreter {
   }
 
   private InterpreterResult executeSql(String sql) {
-
-    logger.debug(sql);
-
     try {
+      logger.info("Connection closed? " + jdbcConnection.isClosed());
+
+      if (jdbcConnection.isClosed())
+        this.open();
 
       if (exceptionOnConnect != null) {
         return new InterpreterResult(Code.ERROR, exceptionOnConnect.getMessage());
       }
 
-      currentStatement = getJdbcConnection().createStatement();
+      currentStatement = jdbcConnection.createStatement();
 
       currentStatement.setMaxRows(maxResult);
 
-      StringBuilder msg = null;
+      StringBuilder msg;
       boolean isTableType = false;
 
       if (containsIgnoreCase(sql, EXPLAIN_PREDICATE)) {
@@ -287,7 +290,7 @@ public class SqlServerInterpreter extends Interpreter {
     if (str == null) {
       return EMPTY_COLUMN_VALUE;
     }
-    return (!isTableResponseType) ? str : str.replace(TAB, WhITESPACE).replace(NEWLINE, WhITESPACE);
+    return (!isTableResponseType) ? str : str.replace(TAB, WHITESPACE).replace(NEWLINE, WHITESPACE);
   }
 
   @Override
@@ -331,7 +334,7 @@ public class SqlServerInterpreter extends Interpreter {
   @Override
   public List<String> completion(String buf, int cursor) {
 
-    List<CharSequence> candidates = new ArrayList<CharSequence>();
+    List<CharSequence> candidates = new ArrayList<>();
     if (sqlCompleter != null && sqlCompleter.complete(buf, cursor, candidates) >= 0) {
       return Lists.transform(candidates, sequenceToStringTransformer);
     } else {

@@ -31,7 +31,7 @@
   <packaging>jar</packaging>
   <version>0.6.0-incubating-SNAPSHOT</version>
   <name>Zeppelin: SqlServer interpreter</name>
-  <url></url>
+  <url>https://github.com/yorek/incubator-zeppelin</url>
 
   <dependencies>
     <dependency>
@@ -80,6 +80,13 @@
       <artifactId>mockrunner-jdbc</artifactId>
       <version>1.0.8</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>sqljdbc41</artifactId>
+      <version>4.1</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -147,6 +154,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
 </project>

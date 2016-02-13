@@ -16,7 +16,7 @@ This fork of Apache Zepplin is focused on specific support for SQL Server and SQ
 The installation method may vary according to your environment, example is for Ubuntu 15.10.
 You can download Ubuntu from here: http://www.ubuntu.com/download/desktop/.
 
-The current version has been built and test on Ubutu 15.10 64bits.
+The current version has been built and tested on Ubutu 15.10 64bits.
 
 From a terminal shell:
 
@@ -49,6 +49,8 @@ From a terminal shell:
 export CLASSPATH=~/sqljdbc_6.0/enu/sqljdbc41.jar
 export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=1024m"
 
+mvn install:install-file -Dfile=~/sqljdbc_6.0/enu/sqljdbc41.jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc41 -Dversion=4.1  -Dpackaging=jar -DgeneratePom=true
+
 cd ~/zeppelin-sqlserver
 
 mvn clean package -DskipTests
@@ -57,8 +59,6 @@ cp ./conf/zeppelin-site.xml.template ./conf/zeppelin-site.xml
 cp ./conf/zeppelin-env.sh.template ./conf/zeppelin-env.sh
 
 cd ~/
-
-cp ./sqljdbc_6.0/enu/sqljdbc41.jar ./zeppelin-sqlserver/zeppelin-interpreter/target/lib
 
 ```
 
@@ -80,3 +80,15 @@ From a terminal shell, start Zeppelin Daemon:
 ```
 
 you can now head to ```http://localhost:8080``` to see Zeppelin running.
+
+## Using Zeppelin
+
+WIP
+
+### Configuring the Interpreter
+
+WIP
+
+### Creating a Notebook
+
+WIP
