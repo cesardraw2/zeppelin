@@ -274,12 +274,13 @@ public class SqlServerInterpreter extends Interpreter {
           currentStatement = null;
         }
       }
+      this.close();
 
       return new InterpreterResult(Code.SUCCESS, msg.toString());
 
     } catch (SQLException ex) {
       logger.error("Cannot run " + sql, ex);
-      return new InterpreterResult(Code.ERROR, ex.getMessage());
+      return new InterpreterResult(Code.ERROR, "Command not run: " + ex.getMessage());
     }
   }
 
