@@ -61,8 +61,6 @@ mvn clean package -DskipTests
 cp ./conf/zeppelin-site.xml.template ./conf/zeppelin-site.xml
 cp ./conf/zeppelin-env.sh.template ./conf/zeppelin-env.sh
 
-cd ~/
-
 ```
 
 ### Configure
