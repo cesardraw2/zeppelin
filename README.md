@@ -33,6 +33,9 @@ sudo apt-get install maven
 curl -L "https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.6629.101_enu.tar.gz" | tar xz
 ```
 
+please note that the above commands already contains anything needed in order to make Zeppelin work with SQL Server.
+If you want to have more information, you can take a look at the readme in the ```sqlserver``` folder.
+
 ### Get Source Code
 
 Download code from GitHub. From a terminal shell:
