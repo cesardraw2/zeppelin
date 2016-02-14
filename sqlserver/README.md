@@ -41,4 +41,4 @@ mvn install:install-file -Dfile=~/sqljdbc_6.0/enu/sqljdbc41.jar -DgroupId=com.mi
 
 ### Additional notes
 
-Given then I'm not a Java Expert, the interpreter has been created starting from the postgresql interpreter code base.
+Given then I'm not a Java Expert, the interpreter has been created starting from the postgresql interpreter code base. This means that the interpreter at present time "just works", but it really needs to be rewritten from scratch in order to cleanup the code to make sure that both the JDBC Driver and SQL Server are used properly and efficiently. This will be done in the next release, for now this is more an Alpha version to check how such interpreter could work and to get confident with Zeppelin codebase and environment.
