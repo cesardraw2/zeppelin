@@ -2,7 +2,7 @@
 
 This fork of Apache Zeppelin is focused on specific support for SQL Server and SQL Azure. Please refer to Apache Zeppelin main page for general information on the project:
 
-[Apache Zepplin](https://github.com/apache/incubator-zeppelin)
+[Apache Zeppelin](https://github.com/apache/incubator-zeppelin)
 
 ## Requirements
  * Java 1.7
@@ -61,7 +61,9 @@ cp ./conf/zeppelin-env.sh.template ./conf/zeppelin-env.sh
 ```
 
 Please note that the above commands already contains anything needed in order to make Zeppelin work with SQL Server.
-If you want to have more information on the SQL Server interpreter, you can take a look at the readme in the ```sqlserver``` folder.
+If you want to have more information on the SQL Server interpreter, you can take a look at the readme in the ```sqlserver``` folder:
+
+[SQL Server Interpreter for Apache Zeppelin](https://github.com/yorek/incubator-zeppelin/blob/master/sqlserver/README.md)
 
 ### Configure
 
