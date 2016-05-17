@@ -6,7 +6,7 @@ This fork of Apache Zeppelin is focused on specific support for SQL Server and S
 
 ## Requirements
  * Java 1.7
- * Tested and Build on Ubuntu 15.10
+ * Tested and Build on Ubuntu 16.04 LTS
  * Maven (if you want to build from the source code)
  * Node.js Package Manager
 
@@ -16,7 +16,7 @@ This fork of Apache Zeppelin is focused on specific support for SQL Server and S
 The installation method may vary according to your environment, example is for Ubuntu 15.10.
 You can download Ubuntu from here: http://www.ubuntu.com/download/desktop/.
 
-The current version has been built and tested on Ubutu 15.10 64bits.
+The current version has been built and tested on Ubuntu 16.04 LTS 64bits.
 
 From a terminal shell:
 
@@ -24,7 +24,7 @@ From a terminal shell:
 # install packages
 sudo apt-get update
 sudo apt-get install git
-sudo apt-get install openjdk-7-jdk
+sudo apt-get install openjdk-8-jdk
 sudo apt-get install npm
 sudo apt-get install libfontconfig
 sudo apt-get install maven

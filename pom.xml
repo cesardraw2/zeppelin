@@ -93,6 +93,7 @@
     <module>postgresql</module>
     <module>jdbc</module>
     <module>sqlserver</module>
+    <module>sqlserver2</module>
     <module>zeppelin-web</module>
     <module>zeppelin-server</module>
     <module>zeppelin-distribution</module>
