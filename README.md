@@ -5,7 +5,7 @@ This fork of Apache Zeppelin is focused on specific support for SQL Server and S
 [Apache Zeppelin](https://github.com/apache/incubator-zeppelin)
 
 ## Requirements
- * Java 1.7
+ * Java 1.8
  * Tested and Build on Ubuntu 16.04 LTS
  * Maven (if you want to build from the source code)
  * Node.js Package Manager
@@ -13,7 +13,7 @@ This fork of Apache Zeppelin is focused on specific support for SQL Server and S
 ## Getting Started
 
 ### Before Build
-The installation method may vary according to your environment, example is for Ubuntu 15.10.
+The installation method may vary according to your environment, example is for Ubuntu 16.04 LTS 64bits.
 You can download Ubuntu from here: http://www.ubuntu.com/download/desktop/.
 
 The current version has been built and tested on Ubuntu 16.04 LTS 64bits.
