@@ -27,7 +27,7 @@
   </parent>
 
   <groupId>org.apache.zeppelin</groupId>
-  <artifactId>zeppelin-sqlserver2</artifactId>
+  <artifactId>zeppelin-sqlserver</artifactId>
   <packaging>jar</packaging>
   <version>0.6.0-incubating-SNAPSHOT</version>
   <name>Zeppelin: Sql Server Interpreter v2</name>
@@ -120,7 +120,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/../../interpreter/sqlserver2</outputDirectory>
+              <outputDirectory>${project.build.directory}/../../interpreter/sqlserver</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
@@ -134,7 +134,7 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/../../interpreter/sqlserver2</outputDirectory>
+              <outputDirectory>${project.build.directory}/../../interpreter/sqlserver</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
