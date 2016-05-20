@@ -14,306 +14,284 @@
  */
 package org.apache.zeppelin.sqlserver;
 
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterPropertyBuilder;
 import org.apache.zeppelin.interpreter.InterpreterResult;
-import org.apache.zeppelin.interpreter.InterpreterResult.Code;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
+
+import java.sql.*;
+import java.util.List;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
-
 /**
- * SQL Server interpreter for Zeppelin.
-
- *
- * <ul>
- * <li>{@code sqlserver.url} - JDBC URL to connect to.</li>
- * <li>{@code sqlserver.user} - JDBC user name..</li>
- * <li>{@code sqlserver.password} - JDBC password..</li>
- * <li>{@code sqlserver.driver.name} - JDBC driver name.</li>
- * <li>{@code sqlserver.max.result} - Max number of SQL result to display.</li>
- * </ul>
- *
- * <p>
- * How to use: <br/>
- * {@code %tsql.sql} <br/>
- * {@code
- *  SELECT store_id, count(*)
- *  FROM retail_demo.order_lineitems_pxf
- *  GROUP BY store_id;
- * }
- * </p>
- *
- * For SQL auto-completion use the (Ctrl+.) shortcut.
+ * SQL Server interpreter v2 for Zeppelin.
  */
-public class SqlServerInterpreter extends Interpreter {
+public class SqlServerInterpreter extends Interpreter
+{
+  private static final String VERSION = "2.0.4.1";
 
-  private Logger logger = LoggerFactory.getLogger(SqlServerInterpreter.class);
-
-  private static final char WHITESPACE = ' ';
   private static final char NEWLINE = '\n';
   private static final char TAB = '\t';
   private static final String TABLE_MAGIC_TAG = "%table ";
-  private static final String EXPLAIN_PREDICATE = "EXPLAIN ";
-  private static final String UPDATE_COUNT_HEADER = "Update Count";
+  private static final String NOTEBOOK_CONNECTION_STYLE = "notebook";
+  private static final String PARAGRAPH_CONNECTION_STYLE = "paragraph";
 
-  static final String DEFAULT_JDBC_URL = "jdbc:sqlserver://localhost:1433";
-  static final String DEFAULT_JDBC_USER_PASSWORD = "";
-  static final String DEFAULT_JDBC_USER_NAME = "zeppelin";
-  static final String DEFAULT_JDBC_DATABASE_NAME = "tempdb";
-  static final String DEFAULT_JDBC_DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-  static final String DEFAULT_MAX_RESULT = "1000";
+  private static final String DEFAULT_JDBC_URL = "jdbc:sqlserver://localhost:1433";
+  private static final String DEFAULT_JDBC_USER_PASSWORD = "";
+  private static final String DEFAULT_JDBC_USER_NAME = "zeppelin";
+  private static final String DEFAULT_JDBC_DATABASE_NAME = "tempdb";
+  private static final String DEFAULT_JDBC_DRIVER_NAME =
+    "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+  private static final String DEFAULT_MAX_RESULT = "1000";
 
-  static final String SQLSERVER_SERVER_URL = "sqlserver.url";
-  static final String SQLSERVER_SERVER_USER = "sqlserver.user";
-  static final String SQLSERVER_SERVER_PASSWORD = "sqlserver.password";
-  static final String SQLSERVER_SERVER_DATABASE_NAME = "sqlserver.database";
-  static final String SQLSERVER_SERVER_DRIVER_NAME = "sqlserver.driver.name";
-  static final String SQLSERVER_SERVER_MAX_RESULT = "sqlserver.max.result";
-  static final String EMPTY_COLUMN_VALUE = "";
+  /*
+    Notebook
+      Single global connection.
+      Connection is opened when notebook is opened and
+      closed when notebook is closed
+
+     Paragraph
+      Each paragraph has its own connection.
+      Connection is opened and closed at each execution
+  */
+  private static final String DEFAULT_CONNECTION_STYLE = NOTEBOOK_CONNECTION_STYLE;
+
+  private static final String SQLSERVER_SERVER_URL = "sqlserver.url";
+  private static final String SQLSERVER_SERVER_USER = "sqlserver.user";
+  private static final String SQLSERVER_SERVER_PASSWORD = "sqlserver.password";
+  private static final String SQLSERVER_SERVER_DATABASE_NAME = "sqlserver.database";
+  private static final String SQLSERVER_SERVER_DRIVER_NAME = "sqlserver.driver.name";
+  private static final String SQLSERVER_SERVER_MAX_RESULT = "sqlserver.max.result";
+  private static final String SQLSERVER_SERVER_CONNECTION_STYLE = "sqlserver.connections";
+
+  private Logger _logger = LoggerFactory.getLogger(SqlServerInterpreter.class);
+  private int _maxRows = 1000;
+  private Connection _jdbcGlobalConnection = null;
+  private boolean _useNotebookConnection = true;
 
   static {
     Interpreter.register(
-        "sql",
-        "tsql",
-        SqlServerInterpreter.class.getName(),
-        new InterpreterPropertyBuilder()
-            .add(SQLSERVER_SERVER_URL, DEFAULT_JDBC_URL, "JDBC URL for SQL Server.")
-            .add(SQLSERVER_SERVER_USER, DEFAULT_JDBC_USER_NAME, "SQL Server user name")
-            .add(SQLSERVER_SERVER_PASSWORD, DEFAULT_JDBC_USER_PASSWORD, "SQL Server user password")
-            .add(SQLSERVER_SERVER_DATABASE_NAME, DEFAULT_JDBC_DATABASE_NAME, "SQL Server database")
-            .add(SQLSERVER_SERVER_DRIVER_NAME, DEFAULT_JDBC_DRIVER_NAME, "JDBC Driver Name")
-            .add(SQLSERVER_SERVER_MAX_RESULT, DEFAULT_MAX_RESULT,
-              "Max number of SQL result to display.")
-            .build());
+      "sql",
+      "tsql",
+      SqlServerInterpreter.class.getName(),
+      new InterpreterPropertyBuilder()
+        .add(SQLSERVER_SERVER_URL, DEFAULT_JDBC_URL, "JDBC URL for SQL Server.")
+        .add(SQLSERVER_SERVER_USER, DEFAULT_JDBC_USER_NAME, "SQL Server user name")
+        .add(SQLSERVER_SERVER_PASSWORD, DEFAULT_JDBC_USER_PASSWORD, "SQL Server user password")
+        .add(SQLSERVER_SERVER_DATABASE_NAME, DEFAULT_JDBC_DATABASE_NAME, "SQL Server database")
+        .add(SQLSERVER_SERVER_DRIVER_NAME, DEFAULT_JDBC_DRIVER_NAME, "JDBC Driver Name")
+        .add(SQLSERVER_SERVER_MAX_RESULT, DEFAULT_MAX_RESULT,
+          "Max number of SQL result to display.")
+        .add(SQLSERVER_SERVER_CONNECTION_STYLE, DEFAULT_CONNECTION_STYLE,
+          "Notebook or Paragraph connection style.")
+        .build());
   }
-
-  private Connection jdbcConnection;
-  private Statement currentStatement;
-  private Exception exceptionOnConnect;
-  private int maxResult;
-
-  private SqlCompleter sqlCompleter;
-
-  private static final Function<CharSequence, String> sequenceToStringTransformer =
-      new Function<CharSequence, String>() {
-        public String apply(CharSequence seq) {
-          return seq.toString();
-        }
-      };
-
-  private static final List<String> NO_COMPLETION = new ArrayList<>();
 
   public SqlServerInterpreter(Properties property) {
     super(property);
   }
 
-  @Override
-  public void open() {
-
-    logger.info("Opening sqlserver connection");
-
-    // Ensure that no previous connections are left open.
-    this.close();
-
+  private Connection openSQLServerConnection()
+  {
     try {
+      if (_jdbcGlobalConnection != null && _useNotebookConnection) {
+        if (!_jdbcGlobalConnection.isClosed())
+          return _jdbcGlobalConnection;
+        else
+          _logger.info("Notebook connection is closed.");
+      }
+    } catch (SQLException e)
+    {
+      _logger.error("Exception trapped while checking if connection is closed.", e);
+    }
 
+    _logger.debug("Opening SQL Server connection...");
+    Connection jdbcConnection = null;
+
+    try
+    {
       String driverName = getProperty(SQLSERVER_SERVER_DRIVER_NAME);
       String url = getProperty(SQLSERVER_SERVER_URL);
       String user = getProperty(SQLSERVER_SERVER_USER);
       String password = getProperty(SQLSERVER_SERVER_PASSWORD);
       String database = getProperty(SQLSERVER_SERVER_DATABASE_NAME);
-      maxResult = Integer.valueOf(getProperty(SQLSERVER_SERVER_MAX_RESULT));
+
+      _maxRows = Integer.valueOf(getProperty(SQLSERVER_SERVER_MAX_RESULT));
 
       Class.forName(driverName);
 
       url = url + ";databaseName=" + database;
       jdbcConnection = DriverManager.getConnection(url, user, password);
 
-      sqlCompleter = createSqlCompleter(jdbcConnection);
+    } catch (ClassNotFoundException | SQLException e)
+    {
+      _logger.error("Cannot open connection.", e);
+    }
 
-      exceptionOnConnect = null;
-      logger.info("Successfully created sqlserver connection");
+    if (jdbcConnection != null)
+    {
+      _logger.debug("Connection opened successfully.");
+    }
 
-    } catch (ClassNotFoundException | SQLException e) {
+    if (_useNotebookConnection)
+      _jdbcGlobalConnection = jdbcConnection;
+    else
+      _jdbcGlobalConnection = null;
 
-      logger.error("Cannot open connection", e);
-      exceptionOnConnect = e;
-      close();
+    return jdbcConnection;
+  }
 
+  private void closeSQLServerConnection(Connection jdbcConnection)
+  {
+    closeSQLServerConnection(jdbcConnection, false);
+  }
+
+  private void closeSQLServerConnection(Connection jdbcConnection, boolean force)
+  {
+    if (_useNotebookConnection && !force) return;
+
+    try
+    {
+      if (jdbcConnection != null)
+        jdbcConnection.close();
+    } catch (SQLException e)
+    {
+      _logger.error("Cannot close connection.", e);
     }
   }
 
-  private SqlCompleter createSqlCompleter(Connection jdbcConnection) {
+  private String replaceTableSpecialChar(String input) {
+    if (input == null)
+      return "";
 
-    SqlCompleter completer = null;
-    try {
-      Set<String> keywordsCompletions = SqlCompleter.getSqlKeywordsCompletions(jdbcConnection);
-      Set<String> dataModelCompletions =
-          SqlCompleter.getDataModelMetadataCompletions(jdbcConnection);
-      SetView<String> allCompletions = Sets.union(keywordsCompletions, dataModelCompletions);
-      completer = new SqlCompleter(allCompletions, dataModelCompletions);
+    return input.replace(TAB, ' ').replace(NEWLINE, ' ');
+  }
 
-    } catch (IOException | SQLException e) {
-      logger.error("Cannot create SQL completer", e);
+  private InterpreterResult executeMetaCommand(String cmd)
+  {
+    _logger.debug("Meta Command: '" + cmd + "'");
+
+    InterpreterResult.Code result = InterpreterResult.Code.SUCCESS;
+    StringBuilder resultMessage = new StringBuilder();
+
+    if (cmd.toLowerCase().trim().equals(":info"))
+    {
+      resultMessage
+        .append(String.format("Using notebook connection: %1s", _useNotebookConnection))
+        .append(NEWLINE);
     }
 
-    return completer;
+    if (resultMessage.length() == 0)
+    {
+      result = InterpreterResult.Code.ERROR;
+      resultMessage.append("Meta-command not known.");
+    }
+
+    return new InterpreterResult(result, resultMessage.toString());
+  }
+
+
+  @Override
+  public void open() {
+    _logger.info(String.format("Starting T-SQL Interpreter v %1s", VERSION));
+
+    String connectionStyle = getProperty(SQLSERVER_SERVER_CONNECTION_STYLE);
+    _logger.info(String.format("Connection style: %1s", connectionStyle));
+    _useNotebookConnection = !(connectionStyle.toLowerCase().equals(PARAGRAPH_CONNECTION_STYLE));
+
+    Connection jdbcConnection = openSQLServerConnection();
+
+    if (jdbcConnection != null) {
+      _logger.debug("TODO: Load autocomplete.");
+      closeSQLServerConnection(jdbcConnection);
+    }
   }
 
   @Override
   public void close() {
+    _logger.info("Releasing SQL Server Interpreter");
 
-    logger.info("Close sqlserver connection");
-
-    try {
-      if (getJdbcConnection() != null) {
-        getJdbcConnection().close();
-      }
-    } catch (SQLException e) {
-      logger.error("Cannot close connection", e);
-    } finally {
-      exceptionOnConnect = null;
-    }
-  }
-
-  private InterpreterResult executeSql(String sql) {
-    try {
-      logger.info("Connection closed? " + jdbcConnection.isClosed());
-
-      if (jdbcConnection.isClosed())
-        this.open();
-
-      if (exceptionOnConnect != null) {
-        return new InterpreterResult(Code.ERROR, exceptionOnConnect.getMessage());
-      }
-
-      currentStatement = jdbcConnection.createStatement();
-
-      currentStatement.setMaxRows(maxResult);
-
-      StringBuilder msg;
-      boolean isTableType = false;
-
-      if (containsIgnoreCase(sql, EXPLAIN_PREDICATE)) {
-        msg = new StringBuilder();
-      } else {
-        msg = new StringBuilder(TABLE_MAGIC_TAG);
-        isTableType = true;
-      }
-
-      ResultSet resultSet = null;
-      try {
-
-        boolean isResultSetAvailable = currentStatement.execute(sql);
-
-        if (isResultSetAvailable) {
-          resultSet = currentStatement.getResultSet();
-
-          ResultSetMetaData md = resultSet.getMetaData();
-
-          for (int i = 1; i < md.getColumnCount() + 1; i++) {
-            if (i > 1) {
-              msg.append(TAB);
-            }
-            msg.append(replaceReservedChars(isTableType, md.getColumnName(i)));
-          }
-          msg.append(NEWLINE);
-
-          int displayRowCount = 0;
-          while (resultSet.next() && displayRowCount < getMaxResult()) {
-            for (int i = 1; i < md.getColumnCount() + 1; i++) {
-              msg.append(replaceReservedChars(isTableType, resultSet.getString(i)));
-              if (i != md.getColumnCount()) {
-                msg.append(TAB);
-              }
-            }
-            msg.append(NEWLINE);
-            displayRowCount++;
-          }
-        } else {
-          // Response contains either an update count or there are no results.
-          int updateCount = currentStatement.getUpdateCount();
-          msg.append(UPDATE_COUNT_HEADER).append(NEWLINE);
-          msg.append(updateCount).append(NEWLINE);
-
-          // In case of update event (e.g. isResultSetAvailable = false) update the completion
-          // meta-data.
-          if (sqlCompleter != null) {
-            sqlCompleter.updateDataModelMetaData(getJdbcConnection());
-          }
-        }
-      } finally {
-        try {
-          if (resultSet != null) {
-            resultSet.close();
-          }
-          currentStatement.close();
-        } finally {
-          currentStatement = null;
-        }
-      }
-      this.close();
-
-      return new InterpreterResult(Code.SUCCESS, msg.toString());
-
-    } catch (SQLException ex) {
-      logger.error("Cannot run " + sql, ex);
-      return new InterpreterResult(Code.ERROR, "Command not run: " + ex.getMessage());
-    }
-  }
-
-  /**
-   * For %table response replace Tab and Newline characters from the content.
-   */
-  private String replaceReservedChars(boolean isTableResponseType, String str) {
-    if (str == null) {
-      return EMPTY_COLUMN_VALUE;
-    }
-    return (!isTableResponseType) ? str : str.replace(TAB, WHITESPACE).replace(NEWLINE, WHITESPACE);
+    closeSQLServerConnection(_jdbcGlobalConnection, true);
   }
 
   @Override
   public InterpreterResult interpret(String cmd, InterpreterContext contextInterpreter) {
-    logger.info("Run SQL command '{}'", cmd);
-    return executeSql(cmd);
+    InterpreterResult.Code result;
+    StringBuilder resultMessage = new StringBuilder();
+
+    if (cmd.startsWith(":")) {
+      return executeMetaCommand(cmd);
+    }
+
+    _logger.debug("T-SQL command: '" + cmd + "'");
+
+    Connection jdbcConnection = openSQLServerConnection();
+    if (jdbcConnection == null) {
+      return new InterpreterResult(InterpreterResult.Code.ERROR,
+        "Cannot open connection to SQL Server.");
+    }
+
+    Statement stmt;
+    try {
+      stmt = jdbcConnection.createStatement();
+      stmt.setMaxRows(_maxRows);
+
+      boolean hasResultSet = stmt.execute(cmd);
+
+      if (hasResultSet) {
+        ResultSet resultSet = stmt.getResultSet();
+        ResultSetMetaData md = resultSet.getMetaData();
+
+        resultMessage.append(TABLE_MAGIC_TAG);
+
+        int columns = md.getColumnCount();
+
+        // Table Header
+        for (int i = 1; i <= columns; i++) {
+          resultMessage.append(md.getColumnName(i));
+          if (i < columns) resultMessage.append(TAB);
+        }
+        resultMessage.append(NEWLINE);
+
+        // Table Body
+        while (resultSet.next()) {
+          for (int i = 1; i <= columns; i++) {
+            resultMessage.append(replaceTableSpecialChar(resultSet.getString(i)));
+            if (i < columns) resultMessage.append(TAB);
+          }
+          resultMessage.append(NEWLINE);
+        }
+
+      } else {
+        int rowsUpdated = stmt.getUpdateCount();
+        if (rowsUpdated >= 0)
+          resultMessage.append(String.format("%1$d records affected.", rowsUpdated));
+        else
+          resultMessage.append("Command executed successfully.");
+      }
+      result = InterpreterResult.Code.SUCCESS;
+    }
+    catch (SQLException e) {
+      _logger.error("Cannot execute SQL Server statement.", e);
+      resultMessage = new StringBuilder();
+      resultMessage.append("Cannot execute SQL Server statement.").append(NEWLINE);
+      resultMessage.append(e.getMessage()).append(NEWLINE);
+      result = InterpreterResult.Code.ERROR;
+    }
+
+    closeSQLServerConnection(jdbcConnection);
+
+    return new InterpreterResult(result, resultMessage.toString());
   }
 
   @Override
   public void cancel(InterpreterContext context) {
 
-    logger.info("Cancel current query statement.");
-
-    if (currentStatement != null) {
-      try {
-        currentStatement.cancel();
-      } catch (SQLException ex) {
-        logger.error("SQLException in SqlServerSqlInterpreter while cancel ", ex);
-      } finally {
-        currentStatement = null;
-      }
-    }
   }
 
   @Override
@@ -329,26 +307,12 @@ public class SqlServerInterpreter extends Interpreter {
   @Override
   public Scheduler getScheduler() {
     return SchedulerFactory.singleton().createOrGetFIFOScheduler(
-        SqlServerInterpreter.class.getName() + this.hashCode());
+      SqlServerInterpreter.class.getName() + this.hashCode()
+    );
   }
 
   @Override
   public List<String> completion(String buf, int cursor) {
-
-    List<CharSequence> candidates = new ArrayList<>();
-    if (sqlCompleter != null && sqlCompleter.complete(buf, cursor, candidates) >= 0) {
-      return Lists.transform(candidates, sequenceToStringTransformer);
-    } else {
-      return NO_COMPLETION;
-    }
-  }
-
-  public int getMaxResult() {
-    return maxResult;
-  }
-
-  // Test only method
-  protected Connection getJdbcConnection() {
-    return jdbcConnection;
+    return null;
   }
 }
