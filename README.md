@@ -90,6 +90,8 @@ you can now head to ```http://localhost:8080``` to see Zeppelin running.
 
 Click on Interpreter menu item so that Zeppelin will show you the Interpreters page.
 
+#### Change and existing configuration
+
 Scroll to the bottom of the page to find the ```tsql``` interpreter. Click on the ```edit``` button on the right and fill the properties with the values correct for the SQL Server or SQL Azure instance you'd like to connect to. The property ```sqlserver.driver.name``` is already set to the correct value. Change it *only* if you really know what you're doing.
 
 the ```sqserver.url``` parameter is more or less the equivalent of a connection string in .NET. To connect to a local SQL Server it will be something like:
@@ -105,6 +107,8 @@ jdbc:sqlserver://<your-sql-azure-server-name>.database.windows.net:1433
 ```
 
 Now click on save and now you're ready to use the configured SQL Server interpreter in a Notebook.
+
+#### Create a new configuration
 
 If you want to create a new SQL Server interpreter to connect to a different SQL Server, just click on the ```+ Create``` button on the top right at the beginning of the page. Type a name for your interpreter, for example, "SQL Server" and from the interpreter drop-down menu select the ```tsql``` item. Now you can follow the same procedure described above to configure your new interpreter.
 
