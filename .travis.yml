@@ -30,9 +30,6 @@ before_install:
 install:
   - mvn $BUILD_FLAG -B
 
-script:
-  - mvn $TEST_FLAG -B
-
 after_failure:
   - cat target/rat.txt
   - cat zeppelin-server/target/rat.txt
