@@ -19,7 +19,7 @@ matrix:
   include:
     # Test all modules
     - jdk: "oraclejdk8"
-      env: BUILD_FLAG="package -DskipTests" TEST_FLAG="verify"
+      env: BUILD_FLAG="package -DskipTests"
 
 install:
   - "export DISPLAY=:99.0"
