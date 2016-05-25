@@ -4,6 +4,10 @@ This fork of Apache Zeppelin is focused on specific support for SQL Server and S
 
 [Apache Zeppelin](https://github.com/apache/incubator-zeppelin)
 
+## Project Status
+
+[![Build Status](https://travis-ci.org/yorek/incubator-zeppelin.svg?branch=master)](https://travis-ci.org/yorek/incubator-zeppelin)
+
 ## Requirements
  * Java 1.8
  * Tested and Build on Ubuntu 16.04 LTS
@@ -25,6 +29,7 @@ From a terminal shell:
 sudo apt-get update
 sudo apt-get install git
 sudo apt-get install openjdk-8-jdk
+sudo apt-get install nodejs
 sudo apt-get install npm
 sudo apt-get install libfontconfig
 sudo apt-get install maven
