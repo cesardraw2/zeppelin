@@ -19,48 +19,60 @@ limitations under the License.
 -->
 {% include JB/setup %}
 
-## Dynamic Form
+# Dynamic Form
 
-Zeppelin dynamically creates input forms. Depending on language backend, there're two different ways to create dynamic form.
+<div id="toc"></div>
+
+Apache Zeppelin dynamically creates input forms. Depending on language backend, there're two different ways to create dynamic form.
 Custom language backend can select which type of form creation it wants to use.
 
-### Using form Templates
+## Using form Templates
 
 This mode creates form using simple template language. It's simple and easy to use. For example Markdown, Shell, SparkSql language backend uses it.
 
-#### Text input form
+### Text input form
 
-To create text input form, use _${formName}_ templates.
-
-for example
-
-<img src="/assets/themes/zeppelin/img/screenshots/form_input.png" />
-
-
-Also you can provide default value, using _${formName=defaultValue}_.
-
-<img src="/assets/themes/zeppelin/img/screenshots/form_input_default.png" />
-
-
-#### Select form
-
-To create select form, use _${formName=defaultValue,option1|option2...}_
+To create text input form, use `${formName}` templates.
 
 for example
 
-<img src="/assets/themes/zeppelin/img/screenshots/form_select.png" />
+<img class="img-responsive" src="/assets/themes/zeppelin/img/screenshots/form_input.png" width="450px" />
 
-Also you can separate option's display name and value, using _${formName=defaultValue,option1(DisplayName)|option2(DisplayName)...}_
 
-<img src="/assets/themes/zeppelin/img/screenshots/form_select_displayname.png" />
+Also you can provide default value, using `${formName=defaultValue}`.
 
-### Creates Programmatically
+<img src="../assets/themes/zeppelin/img/screenshots/form_input_default.png" />
+
+
+### Select form
+
+To create select form, use `${formName=defaultValue,option1|option2...}`
+
+for example
+
+<img src="../assets/themes/zeppelin/img/screenshots/form_select.png" />
+
+Also you can separate option's display name and value, using `${formName=defaultValue,option1(DisplayName)|option2(DisplayName)...}`
+
+<img src="../assets/themes/zeppelin/img/screenshots/form_select_displayname.png" />
+
+### Checkbox form
+
+For multi-selection, you can create a checkbox form using `${checkbox:formName=defaultValue1|defaultValue2...,option1|option2...}`. The variable will be substituted by a comma-separated string based on the selected items. For example:
+
+<img src="../assets/themes/zeppelin/img/screenshots/form_checkbox.png">
+
+Besides, you can specify the delimiter using `${checkbox(delimiter):formName=...}`:
+
+<img src="../assets/themes/zeppelin/img/screenshots/form_checkbox_delimiter.png">
+
+## Creates Programmatically
 
 Some language backend uses programmatic way to create form. For example [ZeppelinContext](../interpreter/spark.html#zeppelincontext) provides form creation API
 
 Here're some examples.
 
-####Text input form
+### Text input form
 <div class="codetabs">
     <div data-lang="scala" markdown="1">
 
@@ -79,9 +91,9 @@ print("Hello "+z.input("name"))
 
     </div>
 </div>
-<img src="/assets/themes/zeppelin/img/screenshots/form_input_prog.png" />
+<img src="../assets/themes/zeppelin/img/screenshots/form_input_prog.png" />
 
-####Text input form with default value
+### Text input form with default value
 <div class="codetabs">
     <div data-lang="scala" markdown="1">
 
@@ -100,9 +112,9 @@ print("Hello "+z.input("name", "sun"))
 
     </div>
 </div>
-<img src="/assets/themes/zeppelin/img/screenshots/form_input_default_prog.png" />
+<img src="../assets/themes/zeppelin/img/screenshots/form_input_default_prog.png" />
 
-####Select form
+### Select form
 <div class="codetabs">
     <div data-lang="scala" markdown="1">
 
@@ -133,4 +145,27 @@ print("Hello "+z.select("day", [("1","mon"),
 
     </div>
 </div>
-<img src="/assets/themes/zeppelin/img/screenshots/form_select_prog.png" />
+<img src="../assets/themes/zeppelin/img/screenshots/form_select_prog.png" />
+
+#### Checkbox form
+<div class="codetabs">
+    <div data-lang="scala" markdown="1">
+
+{% highlight scala %}
+%spark
+val options = Seq(("apple","Apple"), ("banana","Banana"), ("orange","Orange"))
+println("Hello "+z.checkbox("fruit", options).mkString(" and "))
+{% endhighlight %}
+
+    </div>
+    <div data-lang="python" markdown="1">
+
+{% highlight python %}
+%pyspark
+options = [("apple","Apple"), ("banana","Banana"), ("orange","Orange")]
+print("Hello "+ " and ".join(z.checkbox("fruit", options, ["apple"])))
+{% endhighlight %}
+
+    </div>
+</div>
+<img src="../assets/themes/zeppelin/img/screenshots/form_checkbox_prog.png" />

@@ -19,7 +19,8 @@ package org.apache.zeppelin.shell;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collection;
+import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -28,13 +29,13 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResult.Code;
-import org.apache.zeppelin.scheduler.Job;
+import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.slf4j.Logger;
@@ -44,20 +45,21 @@ import org.slf4j.LoggerFactory;
  * Shell interpreter for Zeppelin.
  */
 public class ShellInterpreter extends Interpreter {
-  Logger logger = LoggerFactory.getLogger(ShellInterpreter.class);
-  private static final String EXECUTOR_KEY = "executor";
-  int commandTimeOut = 600000;
-
-  static {
-    Interpreter.register("sh", ShellInterpreter.class.getName());
-  }
+  private static final Logger LOGGER = LoggerFactory.getLogger(ShellInterpreter.class);
+  private static final String TIMEOUT_PROPERTY = "shell.command.timeout.millisecs";
+  private final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+  private final String shell = isWindows ? "cmd /c" : "bash -c";
+  private Map<String, DefaultExecutor> executors;
 
   public ShellInterpreter(Properties property) {
     super(property);
   }
 
   @Override
-  public void open() {}
+  public void open() {
+    LOGGER.info("Command timeout property: {}", TIMEOUT_PROPERTY);
+    executors = new HashMap<String, DefaultExecutor>();
+  }
 
   @Override
   public void close() {}
@@ -65,67 +67,57 @@ public class ShellInterpreter extends Interpreter {
 
   @Override
   public InterpreterResult interpret(String cmd, InterpreterContext contextInterpreter) {
-    logger.debug("Run shell command '" + cmd + "'");
-    CommandLine cmdLine = CommandLine.parse("bash");
-    cmdLine.addArgument("-c", false);
+    LOGGER.debug("Run shell command '" + cmd + "'");
+    OutputStream outStream = new ByteArrayOutputStream();
+    OutputStream errStream = new ByteArrayOutputStream();
+    
+    CommandLine cmdLine = CommandLine.parse(shell);
+    // the Windows CMD shell doesn't handle multiline statements,
+    // they need to be delimited by '&&' instead
+    if (isWindows) {
+      String[] lines = StringUtils.split(cmd, "\n");
+      cmd = StringUtils.join(lines, " && ");
+    }
     cmdLine.addArgument(cmd, false);
-    DefaultExecutor executor = new DefaultExecutor();
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-    executor.setStreamHandler(new PumpStreamHandler(outputStream, errorStream));
-    executor.setWatchdog(new ExecuteWatchdog(commandTimeOut));
 
-    Job runningJob = getRunningJob(contextInterpreter.getParagraphId());
-    Map<String, Object> info = runningJob.info();
-    info.put(EXECUTOR_KEY, executor);
     try {
+      DefaultExecutor executor = new DefaultExecutor();
+      executor.setStreamHandler(new PumpStreamHandler(outStream, errStream));
+      executor.setWatchdog(new ExecuteWatchdog(Long.valueOf(getProperty(TIMEOUT_PROPERTY))));
+      executors.put(contextInterpreter.getParagraphId(), executor);
       int exitVal = executor.execute(cmdLine);
-      logger.info("Paragraph " + contextInterpreter.getParagraphId()
-          + "return with exit value: " + exitVal);
-      return new InterpreterResult(InterpreterResult.Code.SUCCESS, outputStream.toString());
+      LOGGER.info("Paragraph " + contextInterpreter.getParagraphId() 
+        + " return with exit value: " + exitVal);
+      return new InterpreterResult(Code.SUCCESS, outStream.toString());
     } catch (ExecuteException e) {
       int exitValue = e.getExitValue();
-      logger.error("Can not run " + cmd, e);
+      LOGGER.error("Can not run " + cmd, e);
       Code code = Code.ERROR;
-      String msg = errorStream.toString();
+      String message = errStream.toString();
       if (exitValue == 143) {
         code = Code.INCOMPLETE;
-        msg = msg + "Paragraph received a SIGTERM.\n";
-        logger.info("The paragraph " + contextInterpreter.getParagraphId()
-            + " stopped executing: " + msg);
+        message += "Paragraph received a SIGTERM.\n";
+        LOGGER.info("The paragraph " + contextInterpreter.getParagraphId() 
+          + " stopped executing: " + message);
       }
-      msg += "Exitvalue: " + exitValue;
-      return new InterpreterResult(code, msg);
+      message += "ExitValue: " + exitValue;
+      return new InterpreterResult(code, message);
     } catch (IOException e) {
-      logger.error("Can not run " + cmd, e);
+      LOGGER.error("Can not run " + cmd, e);
       return new InterpreterResult(Code.ERROR, e.getMessage());
     }
   }
 
-  private Job getRunningJob(String paragraphId) {
-    Job foundJob = null;
-    Collection<Job> jobsRunning = getScheduler().getJobsRunning();
-    for (Job job : jobsRunning) {
-      if (job.getId().equals(paragraphId)) {
-        foundJob = job;
-      }
-    }
-    return foundJob;
-  }
-
   @Override
   public void cancel(InterpreterContext context) {
-    Job runningJob = getRunningJob(context.getParagraphId());
-    if (runningJob != null) {
-      Map<String, Object> info = runningJob.info();
-      Object object = info.get(EXECUTOR_KEY);
-      if (object != null) {
-        Executor executor = (Executor) object;
-        ExecuteWatchdog watchdog = executor.getWatchdog();
-        watchdog.destroyProcess();
+    for (String paragraphId : executors.keySet()) {
+      if (paragraphId.equals(context.getParagraphId())) {
+        DefaultExecutor executor = executors.get(paragraphId);
+        executor.getWatchdog().destroyProcess();
       }
     }
   }
+
   @Override
   public FormType getFormType() {
     return FormType.SIMPLE;
@@ -143,7 +135,7 @@ public class ShellInterpreter extends Interpreter {
   }
 
   @Override
-  public List<String> completion(String buf, int cursor) {
+  public List<InterpreterCompletion> completion(String buf, int cursor) {
     return null;
   }
 

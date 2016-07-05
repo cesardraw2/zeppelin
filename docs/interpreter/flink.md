@@ -6,7 +6,11 @@ group: manual
 ---
 {% include JB/setup %}
 
-## Flink interpreter for Apache Zeppelin
+# Flink interpreter for Apache Zeppelin
+
+<div id="toc"></div>
+
+## Overview
 [Apache Flink](https://flink.apache.org) is an open source platform for distributed stream and batch data processing. Flink’s core is a streaming dataflow engine that provides data distribution, communication, and fault tolerance for distributed computations over data streams. Flink also builds batch processing on top of the streaming engine, overlaying native iteration support, managed memory, and program optimization.
 
 ## How to start local Flink cluster, to test the interpreter
@@ -33,7 +37,7 @@ At the "Interpreters" menu, you have to create a new Flink interpreter and provi
   </tr>
 </table>
 
-For more information about Flink configuration, you can find it [here](https://ci.apache.org/projects/flink/flink-docs-release-0.10/setup/config.html).
+For more information about Flink configuration, you can find it [here](https://ci.apache.org/projects/flink/flink-docs-release-1.0/setup/config.html).
 
 ## How to test it's working
 In example, by using the [Zeppelin notebook](https://www.zeppelinhub.com/viewer/notebooks/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL05GTGFicy96ZXBwZWxpbi1ub3RlYm9va3MvbWFzdGVyL25vdGVib29rcy8yQVFFREs1UEMvbm90ZS5qc29u) is from Till Rohrmann's presentation [Interactive data analysis with Apache Flink](http://www.slideshare.net/tillrohrmann/data-analysis-49806564) for Apache Flink Meetup.

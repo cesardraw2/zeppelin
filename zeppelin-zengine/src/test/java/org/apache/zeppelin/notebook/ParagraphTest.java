@@ -17,9 +17,24 @@
 
 package org.apache.zeppelin.notebook;
 
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.apache.zeppelin.display.AngularObject;
+import org.apache.zeppelin.display.AngularObjectBuilder;
+import org.apache.zeppelin.display.AngularObjectRegistry;
+import org.apache.zeppelin.display.Input;
+import org.apache.zeppelin.interpreter.Interpreter;
+import org.apache.zeppelin.interpreter.InterpreterFactory;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ParagraphTest {
   @Test
@@ -30,9 +45,96 @@ public class ParagraphTest {
     text = "%table 1234567";
     assertEquals("1234567", Paragraph.getScriptBody(text));
   }
+
   @Test
   public void scriptBodyWithoutReplName() {
     String text = "12345678";
     assertEquals(text, Paragraph.getScriptBody(text));
+  }
+
+  @Test
+  public void replNameEndsWithWhitespace() {
+    String text = "%md\r\n###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+
+    text = "%md\t###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+
+    text = "%md\u000b###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+
+    text = "%md\f###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+
+    text = "%md\n###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+
+    text = "%md ###Hello";
+    assertEquals("md", Paragraph.getRequiredReplName(text));
+  }
+
+  @Test
+  public void effectiveTextTest() {
+    InterpreterFactory interpreterFactory = mock(InterpreterFactory.class);
+    Interpreter interpreter = mock(Interpreter.class);
+    Note note = mock(Note.class);
+
+    Paragraph p = new Paragraph("paragraph", note, null, interpreterFactory);
+    p.setText("%h2 show databases");
+    p.setEffectiveText("%jdbc(h2) show databases");
+    assertEquals("Get right replName", "jdbc", p.getRequiredReplName());
+    assertEquals("Get right scriptBody", "(h2) show databases", p.getScriptBody());
+
+    when(interpreterFactory.getInterpreter(anyString(), eq("jdbc"))).thenReturn(interpreter);
+    when(interpreter.getFormType()).thenReturn(Interpreter.FormType.NATIVE);
+    when(note.getId()).thenReturn("noteId");
+
+    try {
+      p.jobRun();
+    } catch (Throwable throwable) {
+      // Do nothing
+    }
+
+    assertEquals("Erase effective Text", "h2", p.getRequiredReplName());
+    assertEquals("Erase effective Text", "show databases", p.getScriptBody());
+  }
+
+  @Test
+  public void should_extract_variable_from_angular_object_registry() throws Exception {
+    //Given
+    final String noteId = "noteId";
+
+    final AngularObjectRegistry registry = mock(AngularObjectRegistry.class);
+    final Note note = mock(Note.class);
+    final Map<String, Input> inputs = new HashMap<>();
+    inputs.put("name", null);
+    inputs.put("age", null);
+    inputs.put("job", null);
+
+    final String scriptBody = "My name is ${name} and I am ${age=20} years old. " +
+            "My occupation is ${ job = engineer | developer | artists}";
+
+    final Paragraph paragraph = new Paragraph(note, null, null);
+    final String paragraphId = paragraph.getId();
+
+    final AngularObject nameAO = AngularObjectBuilder.build("name", "DuyHai DOAN", noteId,
+            paragraphId);
+
+    final AngularObject ageAO = AngularObjectBuilder.build("age", 34, noteId, null);
+
+    when(note.getId()).thenReturn(noteId);
+    when(registry.get("name", noteId, paragraphId)).thenReturn(nameAO);
+    when(registry.get("age", noteId, null)).thenReturn(ageAO);
+
+    final String expected = "My name is DuyHai DOAN and I am 34 years old. " +
+            "My occupation is ${ job = engineer | developer | artists}";
+    //When
+    final String actual = paragraph.extractVariablesFromAngularRegistry(scriptBody, inputs,
+            registry);
+
+    //Then
+    verify(registry).get("name", noteId, paragraphId);
+    verify(registry).get("age", noteId, null);
+    assertEquals(actual, expected);
   }
 }

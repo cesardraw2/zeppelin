@@ -39,6 +39,10 @@ limitations under the License.
           type="button">
     </span>
     <ul class="dropdown-menu" role="menu" style="width:200px;z-index:1002">
+      <li ng-click="$event.stopPropagation()" style="text-align:center;margin-top:4px;">
+        {{paragraph.id}}
+      </li>
+      <li role="separator" class="divider"></li>
       <li>
         <a ng-click="$event.stopPropagation()" class="dropdown"><span class="fa fa-arrows-h"></span> Width
           <form style="display:inline; margin-left:5px;">
@@ -50,10 +54,10 @@ limitations under the License.
         </a>
       </li>
       <li>
-        <a ng-click="moveUp()"><span class="icon-arrow-up"></span> Move Up</a>
+        <a ng-click="moveUp()" ng-hide="$first"><span class="icon-arrow-up"></span> Move Up</a>
       </li>
       <li>
-        <a ng-click="moveDown()"><span class="icon-arrow-down"></span> Move Down</a>
+        <a ng-click="moveDown()" ng-hide="$last"><span class="icon-arrow-down"></span> Move Down</a>
       </li>
       <li>
         <a ng-click="insertNew()"><span class="icon-plus"></span> Insert New</a>
@@ -83,7 +87,7 @@ limitations under the License.
       </li>
       <li>
         <!-- remove paragraph -->
-        <a ng-click="removeParagraph()"><span class="fa fa-times"></span> Remove</a>
+        <a ng-click="removeParagraph()" ng-hide="$last"><span class="fa fa-times"></span> Remove</a>
       </li>
     </ul>
   </span>

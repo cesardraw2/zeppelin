@@ -17,11 +17,9 @@
 package org.apache.zeppelin.resource;
 
 import com.google.gson.Gson;
+import org.apache.zeppelin.user.AuthenticationInfo;
 import org.apache.zeppelin.display.GUI;
-import org.apache.zeppelin.interpreter.InterpreterContext;
-import org.apache.zeppelin.interpreter.InterpreterContextRunner;
-import org.apache.zeppelin.interpreter.InterpreterGroup;
-import org.apache.zeppelin.interpreter.InterpreterResult;
+import org.apache.zeppelin.interpreter.*;
 import org.apache.zeppelin.interpreter.remote.RemoteInterpreter;
 import org.apache.zeppelin.interpreter.remote.RemoteInterpreterEventPoller;
 import org.apache.zeppelin.interpreter.remote.mock.MockInterpreterResourcePool;
@@ -41,6 +39,10 @@ import static org.junit.Assert.assertTrue;
  * Unittest for DistributedResourcePool
  */
 public class DistributedResourcePoolTest {
+  private static final String INTERPRETER_SCRIPT =
+          System.getProperty("os.name").startsWith("Windows") ?
+                  "../bin/interpreter.cmd" :
+                  "../bin/interpreter.sh";
   private InterpreterGroup intpGroup1;
   private InterpreterGroup intpGroup2;
   private HashMap<String, String> env;
@@ -60,32 +62,38 @@ public class DistributedResourcePoolTest {
 
     intp1 = new RemoteInterpreter(
         p,
+        "note",
         MockInterpreterResourcePool.class.getName(),
-        new File("../bin/interpreter.sh").getAbsolutePath(),
+        new File(INTERPRETER_SCRIPT).getAbsolutePath(),
         "fake",
         "fakeRepo",
         env,
         10 * 1000,
+        null,
         null
     );
 
     intpGroup1 = new InterpreterGroup("intpGroup1");
-    intpGroup1.add(intp1);
+    intpGroup1.put("note", new LinkedList<Interpreter>());
+    intpGroup1.get("note").add(intp1);
     intp1.setInterpreterGroup(intpGroup1);
 
     intp2 = new RemoteInterpreter(
         p,
+        "note",
         MockInterpreterResourcePool.class.getName(),
-        new File("../bin/interpreter.sh").getAbsolutePath(),
+        new File(INTERPRETER_SCRIPT).getAbsolutePath(),
         "fake",
         "fakeRepo",        
         env,
         10 * 1000,
+        null,
         null
     );
 
     intpGroup2 = new InterpreterGroup("intpGroup2");
-    intpGroup2.add(intp2);
+    intpGroup2.put("note", new LinkedList<Interpreter>());
+    intpGroup2.get("note").add(intp2);
     intp2.setInterpreterGroup(intpGroup2);
 
     context = new InterpreterContext(
@@ -93,6 +101,7 @@ public class DistributedResourcePoolTest {
         "id",
         "title",
         "text",
+        new AuthenticationInfo(),
         new HashMap<String, Object>(),
         new GUI(),
         null,
@@ -103,11 +112,11 @@ public class DistributedResourcePoolTest {
     intp1.open();
     intp2.open();
 
-    eventPoller1 = new RemoteInterpreterEventPoller(null);
+    eventPoller1 = new RemoteInterpreterEventPoller(null, null);
     eventPoller1.setInterpreterGroup(intpGroup1);
     eventPoller1.setInterpreterProcess(intpGroup1.getRemoteInterpreterProcess());
 
-    eventPoller2 = new RemoteInterpreterEventPoller(null);
+    eventPoller2 = new RemoteInterpreterEventPoller(null, null);
     eventPoller2.setInterpreterGroup(intpGroup2);
     eventPoller2.setInterpreterProcess(intpGroup2.getRemoteInterpreterProcess());
 
@@ -197,5 +206,44 @@ public class DistributedResourcePoolTest {
     // test getAll() is locality aware
     assertEquals("value1", pool1.getAll().get(0).get());
     assertEquals("value2", pool1.getAll().get(1).get());
+  }
+
+  @Test
+  public void testResourcePoolUtils() {
+    Gson gson = new Gson();
+    InterpreterResult ret;
+
+    // when create some resources
+    intp1.interpret("put note1:paragraph1:key1 value1", context);
+    intp1.interpret("put note1:paragraph2:key1 value2", context);
+    intp2.interpret("put note2:paragraph1:key1 value1", context);
+    intp2.interpret("put note2:paragraph2:key2 value2", context);
+
+
+    // then get all resources.
+    assertEquals(4, ResourcePoolUtils.getAllResources().size());
+
+    // when remove all resources from note1
+    ResourcePoolUtils.removeResourcesBelongsToNote("note1");
+
+    // then resources should be removed.
+    assertEquals(2, ResourcePoolUtils.getAllResources().size());
+    assertEquals("", gson.fromJson(
+        intp1.interpret("get note1:paragraph1:key1", context).message(),
+        String.class));
+    assertEquals("", gson.fromJson(
+        intp1.interpret("get note1:paragraph2:key1", context).message(),
+        String.class));
+
+
+    // when remove all resources from note2:paragraph1
+    ResourcePoolUtils.removeResourcesBelongsToParagraph("note2", "paragraph1");
+
+    // then 1
+    assertEquals(1, ResourcePoolUtils.getAllResources().size());
+    assertEquals("value2", gson.fromJson(
+        intp1.interpret("get note2:paragraph2:key2", context).message(),
+        String.class));
+
   }
 }

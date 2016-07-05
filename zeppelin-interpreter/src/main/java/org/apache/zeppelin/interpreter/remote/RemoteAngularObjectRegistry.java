@@ -23,9 +23,7 @@ import org.apache.thrift.TException;
 import org.apache.zeppelin.display.AngularObject;
 import org.apache.zeppelin.display.AngularObjectRegistry;
 import org.apache.zeppelin.display.AngularObjectRegistryListener;
-import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterGroup;
-import org.apache.zeppelin.interpreter.WrappedInterpreter;
 import org.apache.zeppelin.interpreter.thrift.RemoteInterpreterService.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,19 +45,7 @@ public class RemoteAngularObjectRegistry extends AngularObjectRegistry {
   }
 
   private RemoteInterpreterProcess getRemoteInterpreterProcess() {
-    if (interpreterGroup.size() == 0) {
-      throw new RuntimeException("Can't get remoteInterpreterProcess");
-    }
-    Interpreter p = interpreterGroup.get(0);
-    while (p instanceof WrappedInterpreter) {
-      p = ((WrappedInterpreter) p).getInnerInterpreter();
-    }
-
-    if (p instanceof RemoteInterpreter) {
-      return ((RemoteInterpreter) p).getInterpreterProcess();
-    } else {
-      throw new RuntimeException("Can't get remoteInterpreterProcess");
-    }
+    return interpreterGroup.getRemoteInterpreterProcess();
   }
 
   /**
@@ -75,7 +61,7 @@ public class RemoteAngularObjectRegistry extends AngularObjectRegistry {
     Gson gson = new Gson();
     RemoteInterpreterProcess remoteInterpreterProcess = getRemoteInterpreterProcess();
     if (!remoteInterpreterProcess.isRunning()) {
-      return null;
+      return super.add(name, o, noteId, paragraphId, true);
     }
 
     Client client = null;
@@ -108,8 +94,8 @@ public class RemoteAngularObjectRegistry extends AngularObjectRegistry {
   public AngularObject removeAndNotifyRemoteProcess(String name, String noteId, String
           paragraphId) {
     RemoteInterpreterProcess remoteInterpreterProcess = getRemoteInterpreterProcess();
-    if (!remoteInterpreterProcess.isRunning()) {
-      return null;
+    if (remoteInterpreterProcess == null || !remoteInterpreterProcess.isRunning()) {
+      return super.remove(name, noteId, paragraphId);
     }
 
     Client client = null;
@@ -141,12 +127,7 @@ public class RemoteAngularObjectRegistry extends AngularObjectRegistry {
   @Override
   protected AngularObject createNewAngularObject(String name, Object o, String noteId, String
           paragraphId) {
-    RemoteInterpreterProcess remoteInterpreterProcess = getRemoteInterpreterProcess();
-    if (remoteInterpreterProcess == null) {
-      throw new RuntimeException("Remote Interpreter process not found");
-    }
-    return new RemoteAngularObject(name, o, noteId, paragraphId, getInterpreterGroupId(),
-        getAngularObjectListener(),
-        getRemoteInterpreterProcess());
+    return new RemoteAngularObject(name, o, noteId, paragraphId, interpreterGroup,
+        getAngularObjectListener());
   }
 }

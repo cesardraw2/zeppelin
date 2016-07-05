@@ -6,7 +6,11 @@ group: manual
 ---
 {% include JB/setup %}
 
-## Elasticsearch Interpreter for Apache Zeppelin
+# Elasticsearch Interpreter for Apache Zeppelin
+
+<div id="toc"></div>
+
+## Overview
 [Elasticsearch](https://www.elastic.co/products/elasticsearch) is a highly scalable open-source full-text search and analytics engine. It allows you to store, search, and analyze big volumes of data quickly and in near real time. It is generally used as the underlying engine/technology that powers applications that have complex search features and requirements.
 
 ## Configuration
@@ -94,7 +98,7 @@ With the `search` command, you can send a search query to Elasticsearch. There a
 * You can provide a JSON-formatted query, that is exactly what you provide when you use the REST API of Elasticsearch.  
   * See [Elasticsearch search API reference document](https://www.elastic.co/guide/en/elasticsearch/reference/current/search.html) for more details about the content of the search queries.
 * You can also provide the content of a `query_string`.
-  * This is a shortcut to a query like that: `{ "query": { "query_string": { "query": "__HERE YOUR QUERY__", "analyze_wildcard": true } } }` 
+  * This is a shortcut to a query like that: `{ "query": { "query_string": { "query": "__HERE YOUR QUERY__", "analyze_wildcard": true } } }`
   * See [Elasticsearch query string syntax](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax) for more details about the content of such a query.
 
 ```bash
@@ -119,10 +123,10 @@ Examples:
   ```bash
   %elasticsearch
   search / { "query": { "match_all": { } } }
- 
+
   %elasticsearch
   search /logs { "query": { "query_string": { "query": "request.method:GET AND status:200" } } }
- 
+
   %elasticsearch
   search /logs { "aggs": {
     "content_length_stats": {
@@ -130,7 +134,7 @@ Examples:
         "field": "content_length"
       }
     }
-  } } 
+  } }
   ```
 
   * With query_string elements:
@@ -138,7 +142,7 @@ Examples:
   ```bash
   %elasticsearch
   search /logs request.method:GET AND status:200
- 
+
   %elasticsearch
   search /logs (404 AND (POST OR DELETE))
   ```
@@ -177,6 +181,9 @@ Examples:
 
 * With a JSON query:
 ![Elasticsearch - Search with query](../assets/themes/zeppelin/img/docs-img/elasticsearch-search-json-query-table.png)
+
+* With a JSON query containing a `fields` parameter (for filtering the fields in the response): in this case, all the fields values in the response are arrays, so, after flattening the result, the format of all the field names is `field_name[x]`
+![Elasticsearch - Search with query and a fields param](../assets/themes/zeppelin/img/docs-img/elasticsearch-query-with-fields-param.png)
 
 * With a query string:
 ![Elasticsearch - Search with query string](../assets/themes/zeppelin/img/docs-img/elasticsearch-query-string.png)

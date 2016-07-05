@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# Copyright 2007 The Apache Software Foundation
-#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -21,7 +19,9 @@
 # description: Start and stop daemon script for.
 #
 
-USAGE="Usage: zeppelin-daemon.sh [--config <conf-dir>] {start|stop|restart|reload|status}"
+USAGE="-e Usage: zeppelin-daemon.sh\n\t
+        [--config <conf-dir>] {start|stop|upstart|restart|reload|status}\n\t
+        [--version | -v]"
 
 if [[ "$1" == "--config" ]]; then
   shift
@@ -93,11 +93,6 @@ function initialize_default_directories() {
     echo "Pid dir doesn't exist, create ${ZEPPELIN_PID_DIR}"
     $(mkdir -p "${ZEPPELIN_PID_DIR}")
   fi
-
-  if [[ ! -d "${ZEPPELIN_NOTEBOOK_DIR}" ]]; then
-    echo "Notebook dir doesn't exist, create ${ZEPPELIN_NOTEBOOK_DIR}"
-    $(mkdir -p "${ZEPPELIN_NOTEBOOK_DIR}")
-  fi
 }
 
 function wait_for_zeppelin_to_die() {
@@ -157,6 +152,16 @@ function check_if_process_is_alive() {
     print_log_for_ci
     return 1
   fi
+}
+
+function upstart() {
+
+  # upstart() allows zeppelin to be run and managed as a service
+  # for example, this could be called from an upstart script in /etc/init
+  # where the service manager starts and stops the process
+  initialize_default_directories
+
+  $ZEPPELIN_RUNNER $JAVA_OPTS -cp $ZEPPELIN_CLASSPATH_OVERRIDES:$CLASSPATH $ZEPPELIN_MAIN >> "${ZEPPELIN_OUTFILE}"
 }
 
 function start() {
@@ -241,6 +246,9 @@ case "${1}" in
   stop)
     stop
     ;;
+  upstart)
+    upstart
+    ;;
   reload)
     stop
     start
@@ -251,6 +259,9 @@ case "${1}" in
     ;;
   status)
     find_zeppelin_process
+    ;;
+  -v | --version)
+    getZeppelinVersion
     ;;
   *)
     echo ${USAGE}

@@ -44,6 +44,8 @@ limitations under the License.
     <link rel="stylesheet" href="bower_components/highlightjs/styles/github.css" />
     <link rel="stylesheet" href="bower_components/ngtoast/dist/ngToast.css" />
     <link rel="stylesheet" href="bower_components/bootstrap3-dialog/dist/css/bootstrap-dialog.min.css" />
+    <link rel="stylesheet" href="bower_components/pikaday/css/pikaday.css" />
+    <link rel="stylesheet" href="bower_components/handsontable/dist/handsontable.css" />
     <!-- endbower -->
     <link rel="stylesheet" href="bower_components/jquery-ui/themes/base/all.css" />
     <!-- endbuild -->
@@ -53,13 +55,17 @@ limitations under the License.
     <link rel="stylesheet" href="app/notebook/notebook.css">
     <link rel="stylesheet" href="app/notebook/paragraph/paragraph.css">
     <link rel="stylesheet" href="app/interpreter/interpreter.css">
+    <link rel="stylesheet" href="app/credential/credential.css">
     <link rel="stylesheet" href="app/configuration/configuration.css">
+    <link rel="stylesheet" href="components/expandCollapse/expandCollapse.css">
     <link rel="stylesheet" href="fonts/font-awesome.min.css">
     <link rel="stylesheet" href="fonts/simple-line-icons.css">
     <link rel="stylesheet" href="fonts/custom-font.css">
+    <link rel="stylesheet" href="fonts/Patua-One.css">
+    <link rel="stylesheet" href="fonts/Source-Code-Pro.css">
+    <link rel="stylesheet" href="fonts/Roboto.css">
     <!-- endbuild -->
     <link rel="stylesheet" ng-href="assets/styles/looknfeel/{{looknfeel}}.css">
-    <link rel="stylesheet" href="assets/styles/fontImport.css" />
   </head>
   <body ng-class="{'bodyAsIframe': asIframe}" >
     <!--[if lt IE 7]>
@@ -78,6 +84,9 @@ limitations under the License.
     </div>
     <div ng-controller="NoteImportCtrl as noteimportctrl">
       <div id="note-import-container" ng-include src="'components/noteName-import/note-import-dialog.html'"></div>
+    </div>
+    <div ng-controller="LoginCtrl as noteimportctrl">
+      <div id="login-container" ng-include src="'components/login/login.html'"></div>
     </div>
     <!-- build:js(.) scripts/oldieshim.js -->
     <!--[if lt IE 9]>
@@ -102,9 +111,11 @@ limitations under the License.
     <script src="bower_components/angular-websocket/angular-websocket.min.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/ace.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/mode-scala.js"></script>
+    <script src="bower_components/ace-builds/src-noconflict/mode-python.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/mode-sql.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/mode-markdown.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/mode-sh.js"></script>
+    <script src="bower_components/ace-builds/src-noconflict/mode-r.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/keybinding-emacs.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/ext-language_tools.js"></script>
     <script src="bower_components/ace-builds/src-noconflict/theme-chrome.js"></script>
@@ -125,8 +136,10 @@ limitations under the License.
     <script src="bower_components/ngtoast/dist/ngToast.js"></script>
     <script src="bower_components/ng-focus-if/focusIf.js"></script>
     <script src="bower_components/bootstrap3-dialog/dist/js/bootstrap-dialog.min.js"></script>
-    <script src="bower_components/floatThead/dist/jquery.floatThead.js"></script>
-    <script src="bower_components/floatThead/dist/jquery.floatThead.min.js"></script>
+    <script src="bower_components/zeroclipboard/dist/ZeroClipboard.js"></script>
+    <script src="bower_components/moment/moment.js"></script>
+    <script src="bower_components/pikaday/pikaday.js"></script>
+    <script src="bower_components/handsontable/dist/handsontable.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:js({.tmp,src}) scripts/scripts.js -->
@@ -135,12 +148,15 @@ limitations under the License.
     <script src="app/home/home.controller.js"></script>
     <script src="app/notebook/notebook.controller.js"></script>
     <script src="app/interpreter/interpreter.controller.js"></script>
+    <script src="app/interpreter/interpreter.filter.js"></script>
+    <script src="app/credential/credential.controller.js"></script>
     <script src="app/configuration/configuration.controller.js"></script>
     <script src="app/notebook/paragraph/paragraph.controller.js"></script>
     <script src="app/search/result-list.controller.js"></script>
     <script src="components/arrayOrderingSrv/arrayOrdering.service.js"></script>
     <script src="components/navbar/navbar.controller.js"></script>
     <script src="components/ngescape/ngescape.directive.js"></script>
+    <script src="components/expandCollapse/expandCollapse.directive.js"></script>
     <script src="components/noteName-create/notename.controller.js"></script>
     <script src="components/noteName-import/notenameImport.controller.js"></script>
     <script src="components/popover-html-unsafe/popover-html-unsafe.directive.js"></script>
@@ -155,6 +171,7 @@ limitations under the License.
     <script src="components/browser-detect/browserDetect.service.js"></script>
     <script src="components/saveAs/saveAs.service.js"></script>
     <script src="components/searchService/search.service.js"></script>
+    <script src="components/login/login.controller.js"></script>
     <!-- endbuild -->
   </body>
 </html>

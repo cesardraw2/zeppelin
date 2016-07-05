@@ -56,6 +56,54 @@ module.exports = function (grunt) {
       }
     },
 
+    'goog-webfont-dl': {
+      patuaOne: {
+        options: {
+          ttf: true,
+          eot: true,
+          woff: true,
+          woff2: true,
+          svg: true,
+          fontname: 'Patua One',
+          fontstyles: '400',
+          fontdest: '<%= yeoman.app %>/fonts/',
+          cssdest: '<%= yeoman.app %>/fonts/Patua-One.css',
+          cssprefix: '',
+          subset: ''
+        }
+      },
+      sourceCodePro: {
+        options: {
+          ttf: true,
+          eot: true,
+          woff: true,
+          woff2: true,
+          svg: true,
+          fontname: 'Source Code Pro',
+          fontstyles: '300, 400, 500',
+          fontdest: '<%= yeoman.app %>/fonts/',
+          cssdest: '<%= yeoman.app %>/fonts/Source-Code-Pro.css',
+          cssprefix: '',
+          subset: ''
+        }
+      },
+      roboto: {
+        options: {
+          ttf: true,
+          eot: true,
+          woff: true,
+          woff2: true,
+          svg: true,
+          fontname: 'Roboto',
+          fontstyles: '300, 400, 500',
+          fontdest: '<%= yeoman.app %>/fonts/',
+          cssdest: '<%= yeoman.app %>/fonts/Roboto.css',
+          cssprefix: '',
+          subset: ''
+        }
+      }
+    },
+
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
@@ -356,6 +404,11 @@ module.exports = function (grunt) {
           src: ['app/**/*.html', 'components/**/*.html']
         }, {
           expand: true,
+          cwd: 'bower_components/datatables/media/images',
+          src: '{,*/}*.{png,jpg,jpeg,gif}',
+          dest: '<%= yeoman.dist %>/images'
+        }, {
+          expand: true,
           cwd: '.tmp/images',
           dest: '<%= yeoman.dist %>/images',
           src: ['generated/*']
@@ -434,8 +487,10 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('build', [
+    'jshint:all',
     'clean:dist',
     'wiredep',
+    'goog-webfont-dl',
     'useminPrepare',
     'concurrent:dist',
     'postcss',
@@ -449,12 +504,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('default', [
-    'newer:jshint',
-    /*
-     * Since we dont have test (or up to date) there is no reason to keep this task
-     * I am commented this, but can be changed in the future (if someone want to implement front tests).
-    'test',
-    */
-    'build'
+    'build',
+    'test'
   ]);
 };

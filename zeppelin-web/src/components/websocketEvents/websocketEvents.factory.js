@@ -13,7 +13,7 @@
  */
 'use strict';
 
-angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope, $websocket, $location, baseUrlSrv) {
+angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope, $websocket, $location, $window, baseUrlSrv) {
   var websocketCalls = {};
 
   websocketCalls.ws = $websocket(baseUrlSrv.getWebsocketUrl());
@@ -28,9 +28,16 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
   });
 
   websocketCalls.sendNewEvent = function(data) {
-    data.principal = $rootScope.ticket.principal;
-    data.ticket = $rootScope.ticket.ticket;
-    console.log('Send >> %o, %o, %o, %o', data.op, data.principal, data.ticket, data);
+    if ($rootScope.ticket !== undefined) {
+      data.principal = $rootScope.ticket.principal;
+      data.ticket = $rootScope.ticket.ticket;
+      data.roles = $rootScope.ticket.roles;
+    } else {
+      data.principal = '';
+      data.ticket = '';
+      data.roles = '';
+    }
+    console.log('Send >> %o, %o, %o, %o, %o', data.op, data.principal, data.ticket, data.roles, data);
     websocketCalls.ws.send(JSON.stringify(data));
   };
 
@@ -52,12 +59,35 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
       $location.path('notebook/' + data.note.id);
     } else if (op === 'NOTES_INFO') {
       $rootScope.$broadcast('setNoteMenu', data.notes);
+    } else if (op === 'AUTH_INFO') {
+      BootstrapDialog.show({
+          closable: false,
+          closeByBackdrop: false,
+          closeByKeyboard: false,
+          title: 'Insufficient privileges', 
+          message: data.info.toString(),
+          buttons: [{
+              label: 'Login',
+              action: function(dialog) {
+                  dialog.close();
+                  angular.element('#loginModal').modal({
+                    show: 'true'
+                  });
+              }
+          }, {
+              label: 'Cancel',
+              action: function(dialog) {
+                  dialog.close();
+                  $window.location.replace('/');
+              }
+          }]
+      });
     } else if (op === 'PARAGRAPH') {
       $rootScope.$broadcast('updateParagraph', data);
     } else if (op === 'PARAGRAPH_APPEND_OUTPUT') {
       $rootScope.$broadcast('appendParagraphOutput', data);
     } else if (op === 'PARAGRAPH_UPDATE_OUTPUT') {
-      $rootScope.$broadcast('updateParagraphOutput', data);      
+      $rootScope.$broadcast('updateParagraphOutput', data);
     } else if (op === 'PROGRESS') {
       $rootScope.$broadcast('updateProgress', data);
     } else if (op === 'COMPLETION_LIST') {
@@ -66,6 +96,14 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
       $rootScope.$broadcast('angularObjectUpdate', data);
     } else if (op === 'ANGULAR_OBJECT_REMOVE') {
       $rootScope.$broadcast('angularObjectRemove', data);
+    } else if (op === 'APP_APPEND_OUTPUT') {
+      $rootScope.$broadcast('appendAppOutput', data);
+    } else if (op === 'APP_UPDATE_OUTPUT') {
+      $rootScope.$broadcast('updateAppOutput', data);
+    } else if (op === 'APP_LOAD') {
+      $rootScope.$broadcast('appLoad', data);
+    } else if (op === 'APP_STATUS_CHANGE') {
+      $rootScope.$broadcast('appStatusChange', data);
     }
   });
 

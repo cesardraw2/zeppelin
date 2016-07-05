@@ -31,7 +31,21 @@
   position: absolute;
 }
 
+.search-results-highlight-header {
+  background-color: #e6f2ff;
+  position: absolute;
+}
+
 /* remove error highlighting */
 .search-results .ace_invalid {
   background: none !important;
+}
+
+.search-no-result-found {
+  border: 1px solid;
+  margin: 150px 150px;
+  padding: 15px 10px 15px 0px;
+  color: #00529B;
+  text-align: center;
+  background-color: #f4f6f8;
 }

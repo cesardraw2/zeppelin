@@ -20,7 +20,9 @@ package org.apache.zeppelin.interpreter;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.display.AngularObjectRegistry;
+import org.apache.zeppelin.user.AuthenticationInfo;
 import org.apache.zeppelin.display.GUI;
 import org.apache.zeppelin.resource.ResourcePool;
 
@@ -30,6 +32,7 @@ import org.apache.zeppelin.resource.ResourcePool;
 public class InterpreterContext {
   private static final ThreadLocal<InterpreterContext> threadIC =
       new ThreadLocal<InterpreterContext>();
+
   public final InterpreterOutput out;
 
   public static InterpreterContext get() {
@@ -48,6 +51,7 @@ public class InterpreterContext {
   private final String paragraphTitle;
   private final String paragraphId;
   private final String paragraphText;
+  private AuthenticationInfo authenticationInfo;
   private final Map<String, Object> config;
   private GUI gui;
   private AngularObjectRegistry angularObjectRegistry;
@@ -58,6 +62,7 @@ public class InterpreterContext {
                             String paragraphId,
                             String paragraphTitle,
                             String paragraphText,
+                            AuthenticationInfo authenticationInfo,
                             Map<String, Object> config,
                             GUI gui,
                             AngularObjectRegistry angularObjectRegistry,
@@ -69,6 +74,7 @@ public class InterpreterContext {
     this.paragraphId = paragraphId;
     this.paragraphTitle = paragraphTitle;
     this.paragraphText = paragraphText;
+    this.authenticationInfo = authenticationInfo;
     this.config = config;
     this.gui = gui;
     this.angularObjectRegistry = angularObjectRegistry;
@@ -92,6 +98,10 @@ public class InterpreterContext {
 
   public String getParagraphTitle() {
     return paragraphTitle;
+  }
+
+  public AuthenticationInfo getAuthenticationInfo() {
+    return authenticationInfo;
   }
 
   public Map<String, Object> getConfig() {

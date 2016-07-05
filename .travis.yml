@@ -15,6 +15,22 @@
 
 language: java
 
+sudo: false
+
+cache:
+  directories:
+    - .spark-dist
+    - ${HOME}/.m2/repository/.cache/maven-download-plugin
+
+addons:
+  apt:
+    sources:
+    - r-packages-precise
+    packages:
+    - r-base-dev
+    - r-cran-evaluate
+    - r-cran-base64enc
+
 matrix:
   include:
     # Test all modules
@@ -31,6 +47,7 @@ script:
   - mvn $BUILD_FLAG -B
 
 after_failure:
+  - echo "Travis exited with ${TRAVIS_TEST_RESULT}"
   - cat target/rat.txt
   - cat zeppelin-server/target/rat.txt
   - cat zeppelin-distribution/target/zeppelin-*-SNAPSHOT/zeppelin-*-SNAPSHOT/logs/zeppelin*.log

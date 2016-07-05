@@ -235,7 +235,13 @@ The text of each license is also included at licenses/LICENSE-[project]-[version
     (The MIT License) jekyll-bootstrap 0.3.0 (https://github.com/plusjade/jekyll-bootstrap) - https://github.com/plusjade/jekyll-bootstrap
     (The MIT License) jekyll 1.3.0 (http://jekyllrb.com/) - https://github.com/jekyll/jekyll/blob/v1.3.0/LICENSE
 
-
+========================================================================
+MIT-style licenses
+========================================================================
+The following components are provided under the MIT-style license. See project link for details.
+The text of each license is also included at licenses/LICENSE-[project]-[version].txt.
+    
+    (MIT Style) jekyll-table-of-contents (https://github.com/ghiculescu/jekyll-table-of-contents) - https://github.com/ghiculescu/jekyll-table-of-contents/blob/master/LICENSE.txt
 
 ========================================================================
 Apache licenses
@@ -245,3 +251,23 @@ The following components are provided under the Apache License. See project link
 The text of each license is also included at licenses/LICENSE-[project]-[version].txt.
 
     (Apache 2.0) Bootstrap v3.0.2 (http://getbootstrap.com/) - https://github.com/twbs/bootstrap/blob/v3.0.2/LICENSE
+
+========================================================================
+BSD 3-Clause licenses
+========================================================================
+The following components are provided under the BSD 3-Clause license.  See file headers and project links for details.
+
+  (BSD 3 Clause) portions of rscala 1.0.6 (https://dahl.byu.edu/software/rscala/) - https://cran.r-project.org/web/packages/rscala/index.html
+   r/R/rzeppelin/R/{common.R, globals.R,protocol.R,rServer.R,scalaInterpreter.R,zzz.R }
+   r/src/main/scala/org/apache/zeppelin/rinterpreter/rscala/{Package.scala, RClient.scala}
+
+  (BSD 3 Clause) portions of Scala (http://www.scala-lang.org/download) - http://www.scala-lang.org/download/#License
+   r/src/main/scala/scala/Console.scala
+
+========================================================================
+BSD 2-Clause licenses
+========================================================================
+The following components are provided under the BSD 3-Clause license.  See file headers and project links for details.
+
+  (BSD 2 Clause) portions of SQLLine (http://sqlline.sourceforge.net/) - http://sqlline.sourceforge.net/#license
+   jdbc/src/main/java/org/apache/zeppelin/jdbc/SqlCompleter.java

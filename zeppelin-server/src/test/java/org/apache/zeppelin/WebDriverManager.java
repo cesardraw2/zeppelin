@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.fail;
 
@@ -106,14 +107,16 @@ public class WebDriverManager {
     }
 
     String url;
-    if (System.getProperty("url") != null) {
-      url = System.getProperty("url");
+    if (System.getenv("url") != null) {
+      url = System.getenv("url");
     } else {
       url = "http://localhost:8080";
     }
 
     long start = System.currentTimeMillis();
     boolean loaded = false;
+    driver.manage().timeouts().implicitlyWait(AbstractZeppelinIT.MAX_IMPLICIT_WAIT,
+        TimeUnit.SECONDS);
     driver.get(url);
 
     while (System.currentTimeMillis() - start < 60 * 1000) {
@@ -122,7 +125,7 @@ public class WebDriverManager {
         (new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
           @Override
           public Boolean apply(WebDriver d) {
-            return d.findElement(By.partialLinkText("Create new note"))
+            return d.findElement(By.xpath("//i[@tooltip='WebSocket Connected']"))
                 .isDisplayed();
           }
         });

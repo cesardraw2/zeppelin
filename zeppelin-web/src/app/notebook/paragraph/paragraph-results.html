@@ -13,6 +13,8 @@ limitations under the License.
 -->
 <div
   id="p{{paragraph.id}}_resize"
+  ng-if="!paragraph.config.helium.activeApp"
+  style='padding-bottom: 5px;'
   resize='{"allowresize": "{{!asIframe && !viewOnly}}", "graphType": "{{getResultType()}}"}'
      resizable on-resize="resizeParagraph(width, height);">
   <div ng-include src="'app/notebook/paragraph/paragraph-graph.html'"></div>
@@ -23,9 +25,20 @@ limitations under the License.
        ng-bind-html="paragraph.result.comment">
   </div>
 
-  <div id="p{{paragraph.id}}_text"
-       class="text"
-       ng-if="getResultType() == 'TEXT'"></div>
+  <div id="{{paragraph.id}}_text"
+       ng-if="getResultType() == 'TEXT'">
+    <div class="fa fa-level-down scroll-paragraph-down"
+         ng-show="showScrollDownIcon()"
+         ng-click="scrollParagraphDown()"
+         tooltip="Follow Output"></div>
+    <div id="p{{paragraph.id}}_text"
+         style="max-height: {{paragraph.config.graph.height}}px; overflow: auto"
+         class="text"></div>
+    <div class="fa fa-chevron-up scroll-paragraph-up"
+         ng-show="showScrollUpIcon()"
+         ng-click="scrollParagraphUp()"
+         tooltip="Scroll Top"></div>
+  </div>
 
   <div id="p{{paragraph.id}}_html"
        class="resultContained"
@@ -48,3 +61,11 @@ limitations under the License.
        ng-bind="paragraph.errorMessage">
   </div>
 </div>
+
+<div ng-repeat="app in apps">
+  <div id="p{{app.id}}"
+       ng-show="paragraph.config.helium.activeApp == app.id">
+  </div>
+</div>
+
+

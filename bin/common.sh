@@ -36,10 +36,6 @@ if [[ -z "${ZEPPELIN_LOG_DIR}" ]]; then
   export ZEPPELIN_LOG_DIR="${ZEPPELIN_HOME}/logs"
 fi
 
-if [[ -z "${ZEPPELIN_NOTEBOOK_DIR}" ]]; then
-  export ZEPPELIN_NOTEBOOK_DIR="${ZEPPELIN_HOME}/notebook"
-fi
-
 if [[ -z "$ZEPPELIN_PID_DIR" ]]; then
   export ZEPPELIN_PID_DIR="${ZEPPELIN_HOME}/run"
 fi
@@ -85,6 +81,18 @@ function addJarInDir(){
   fi
 }
 
+ZEPPELIN_COMMANDLINE_MAIN=org.apache.zeppelin.utils.CommandLineUtils
+
+function getZeppelinVersion(){
+    if [[ -d "${ZEPPELIN_HOME}/zeppelin-server/target/classes" ]]; then
+      ZEPPELIN_CLASSPATH+=":${ZEPPELIN_HOME}/zeppelin-server/target/classes"
+    fi
+    addJarInDir "${ZEPPELIN_HOME}/zeppelin-server/target/lib"
+    CLASSPATH+=":${ZEPPELIN_CLASSPATH}"
+    $ZEPPELIN_RUNNER -cp $CLASSPATH $ZEPPELIN_COMMANDLINE_MAIN -v
+    exit 0
+}
+
 # Text encoding for 
 # read/write job into files,
 # receiving/displaying query/result.
@@ -97,6 +105,7 @@ if [[ -z "$ZEPPELIN_MEM" ]]; then
 fi
 
 JAVA_OPTS+=" ${ZEPPELIN_JAVA_OPTS} -Dfile.encoding=${ZEPPELIN_ENCODING} ${ZEPPELIN_MEM}"
+JAVA_OPTS+=" -Dlog4j.configuration=file://${ZEPPELIN_CONF_DIR}/log4j.properties"
 export JAVA_OPTS
 
 # jvm options for interpreter process
@@ -108,7 +117,8 @@ if [[ -z "${ZEPPELIN_INTP_MEM}" ]]; then
   export ZEPPELIN_INTP_MEM="${ZEPPELIN_MEM}"
 fi
 
-JAVA_INTP_OPTS+=" ${ZEPPELIN_INTP_JAVA_OPTS} -Dfile.encoding=${ZEPPELIN_ENCODING}"
+JAVA_INTP_OPTS="${ZEPPELIN_INTP_JAVA_OPTS} -Dfile.encoding=${ZEPPELIN_ENCODING}"
+JAVA_INTP_OPTS+=" -Dlog4j.configuration=file://${ZEPPELIN_CONF_DIR}/log4j.properties"
 export JAVA_INTP_OPTS
 
 

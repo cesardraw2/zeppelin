@@ -17,14 +17,14 @@
 'use strict';
 (function() {
     var zeppelinWebApp = angular.module('zeppelinWebApp', [
-            'ngAnimate',
             'ngCookies',
+            'ngAnimate',
             'ngRoute',
             'ngSanitize',
             'angular-websocket',
             'ui.ace',
             'ui.bootstrap',
-            'ui.sortable',
+            'as.sortable',
             'ngTouch',
             'ngDragDrop',
             'angular.filter',
@@ -66,6 +66,10 @@
                     templateUrl: 'app/interpreter/interpreter.html',
                     controller: 'InterpreterCtrl'
                 })
+                .when('/credential', {
+                    templateUrl: 'app/credential/credential.html',
+                    controller: 'CredentialCtrl'
+                })
                 .when('/configuration', {
                   templateUrl: 'app/configuration/configuration.html',
                   controller: 'ConfigurationCtrl'
@@ -81,8 +85,7 @@
             ngToastProvider.configure({
                 dismissButton: true,
                 dismissOnClick: false,
-                timeout: 6000,
-                verticalPosition: 'bottom'
+                timeout: 6000
             });
         });
 
